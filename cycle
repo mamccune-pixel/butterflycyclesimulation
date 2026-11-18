@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Butterfly Life Cycle Explorer - 5th Grade Science</title>
+    <!-- Tailwind CSS for responsive layout and utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for procedural kid-friendly sound effects without external audio files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Google Fonts: Fredoka for playful headings and Nunito for clean readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #dcfce7 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        h1, h2, h3, .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Custom 3D-style Kid-Friendly Buttons */
+        .btn-bouncy {
+            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+        }
+        .btn-bouncy:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 rgba(0, 0, 0, 0.18);
+        }
+        .btn-bouncy:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+        }
+        .btn-bouncy:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Animations for Interactive Elements */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-4deg) scale(1.03); }
+            50% { transform: rotate(4deg) scale(1.06); }
+        }
+        .animate-wiggle {
+            animation: wiggle 0.4s ease-in-out infinite;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6)); }
+            50% { filter: drop-shadow(0 0 18px rgba(250, 204, 21, 0.95)); }
+        }
+        .animate-glow {
+            animation: pulseGlow 1.8s ease-in-out infinite;
+        }
+
+        @keyframes flutter {
+            0%, 100% { transform: scaleX(1) translateY(0); }
+            50% { transform: scaleX(0.45) translateY(-6px); }
+        }
+        .wings-flutter {
+            transform-origin: center;
+            animation: flutter 0.35s ease-in-out infinite;
+        }
+
+        /* Custom Progress Bar Striping */
+        .progress-striped {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.25) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.25) 50%,
+                rgba(255, 255, 255, 0.25) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 1rem 1rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col items-center p-3 sm:p-6">
+
+    <!-- Main App Container -->
+    <div class="w-full max-w-5xl flex flex-col gap-4">
+
+        <!-- Header Banner -->
+        <header class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:px-6 shadow-lg border-4 border-sky-300 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white text-2xl shadow-md">
+                    🦋
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-3xl font-bold text-sky-900 tracking-tight">Metamorphosis Lab</h1>
+                    <p class="text-xs sm:text-sm font-bold text-emerald-700">5th Grade Interactive Science Simulation</p>
+                </div>
+            </div>
+
+            <!-- Controls & Sound Toggle -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="soundToggle" onclick="toggleSound()" class="btn-bouncy bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-2 rounded-2xl border-2 border-amber-300 text-sm flex items-center gap-1.5" title="Toggle Sound Effects">
+                    <span id="soundIcon">🔊</span>
+                    <span class="hidden sm:inline" id="soundLabel">Sound On</span>
+                </button>
+                <button onclick="openVocabModal()" class="btn-bouncy bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold px-3 py-2 rounded-2xl border-2 border-purple-300 text-sm flex items-center gap-1.5">
+                    <span>📖</span>
+                    <span>Science Words</span>
+                </button>
+                <button onclick="resetSimulation()" class="btn-bouncy bg-rose-100 hover:bg-rose-200 text-rose-900 font-bold px-3 py-2 rounded-2xl border-2 border-rose-300 text-sm flex items-center gap-1.5">
+                    <span>🔄</span>
+                    <span class="hidden sm:inline">Restart</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 4-Stage Life Cycle Stepper Navigation -->
+        <nav aria-label="Life Cycle Stages" class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+            <button id="nav-0" onclick="selectStage(0)" class="btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white border-emerald-400 shadow-md">
+                <span class="text-2xl sm:text-3xl">🥚</span>
+                <div>
+                    <div class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600">Stage 1</div>
+                    <div class="font-display font-bold text-sm sm:text-base text-slate-800">The Egg</div>
+                </div>
+            </button>
+
+            <button id="nav-1" onclick="selectStage(1)" class="btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white/70 border-slate-200 opacity-85">
+                <span class="text-2xl sm:text-3xl">🐛</span>
+                <div>
+                    <div class="text-[11px] font-extrabold uppercase tracking-wider text-lime-600">Stage 2</div>
+                    <div class="font-display font-bold text-sm sm:text-base text-slate-800">Larva</div>
+                </div>
+            </button>
+
+            <button id="nav-2" onclick="selectStage(2)" class="btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white/70 border-slate-200 opacity-85">
+                <span class="text-2xl sm:text-3xl">🌿</span>
+                <div>
+                    <div class="text-[11px] font-extrabold uppercase tracking-wider text-teal-600">Stage 3</div>
+                    <div class="font-display font-bold text-sm sm:text-base text-slate-800">Pupa</div>
+                </div>
+            </button>
+
+            <button id="nav-3" onclick="selectStage(3)" class="btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white/70 border-slate-200 opacity-85">
+                <span class="text-2xl sm:text-3xl">🦋</span>
+                <div>
+                    <div class="text-[11px] font-extrabold uppercase tracking-wider text-orange-600">Stage 4</div>
+                    <div class="font-display font-bold text-sm sm:text-base text-slate-800">Adult</div>
+                </div>
+            </button>
+        </nav>
+
+        <!-- Main Interactive Workspace (2-Column on Desktop, Stacked on Mobile) -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+
+            <!-- Left/Center Interactive Habitat Canvas (7 Columns) -->
+            <section class="lg:col-span-7 bg-white rounded-3xl border-4 border-emerald-300 shadow-xl overflow-hidden flex flex-col justify-between relative min-h-[390px] sm:min-h-[450px]">
+                
+                <!-- Top Mission Prompt Banner -->
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-3 flex items-center justify-between gap-2 z-10 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-white text-emerald-700 font-extrabold text-xs px-2.5 py-1 rounded-full uppercase">Mission</span>
+                        <p id="missionText" class="font-bold text-sm sm:text-base">Keep the egg warm with sunlight and tap it gently to help it hatch!</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Visual Stage Area -->
+                <div id="habitatArea" class="relative flex-1 w-full flex items-center justify-center p-4 overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-100">
+                    <!-- Decorative Clouds & Sun Background -->
+                    <div class="absolute top-4 left-6 text-4xl opacity-75 pointer-events-none animate-float">☁️</div>
+                    <div class="absolute top-10 right-10 text-3xl opacity-60 pointer-events-none">☁️</div>
+
+                    <!-- Dynamic Stage SVG Container -->
+                    <div id="stageVisualContainer" class="w-full h-full flex items-center justify-center relative z-10">
+                        <!-- Injected dynamically via JS for crisp interactive SVG graphics -->
+                    </div>
+
+                    <!-- Floating Feedback Toast inside Habitat -->
+                    <div id="habitatToast" class="pointer-events-none opacity-0 transition-all duration-300 absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/85 text-white font-bold text-sm px-4 py-2 rounded-full shadow-lg whitespace-nowrap z-20">
+                        Great job!
+                    </div>
+                </div>
+
+                <!-- Bottom Stage Interactive Toolbar -->
+                <div class="bg-slate-50 border-t-2 border-slate-200 p-3 sm:p-4 flex flex-col gap-3 z-10">
+                    <!-- Progress Bar for Current Stage -->
+                    <div class="w-full">
+                        <div class="flex justify-between text-xs font-extrabold text-slate-600 mb-1">
+                            <span id="progressLabel">Warmth & Hatching Progress</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden p-0.5 border border-slate-300">
+                            <div id="progressBar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full progress-striped transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons specific to current stage -->
+                    <div id="actionButtonsContainer" class="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                        <!-- Dynamically populated buttons -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Science Lab Notebook & Observation Panel (5 Columns) -->
+            <aside class="lg:col-span-5 bg-white/95 rounded-3xl border-4 border-amber-300 shadow-xl p-5 flex flex-col justify-between gap-4">
+                <div>
+                    <!-- Stage Badge & Title -->
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span id="stageBadge" class="bg-emerald-100 text-emerald-800 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wide border border-emerald-300">
+                            Stage 1 of 4
+                        </span>
+                        <span id="durationBadge" class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                            ⏱️ ~3 to 5 Days
+                        </span>
+                    </div>
+
+                    <h2 id="stageTitle" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">1. The Egg Stage</h2>
+                    
+                    <p id="stageDescription" class="text-slate-700 text-sm sm:text-base leading-relaxed mb-4">
+                        A mother Monarch butterfly lays tiny, oval eggs on the underside of a <strong>milkweed leaf</strong>. The leaf protects the egg and will become the caterpillar's very first meal!
+                    </p>
+
+                    <!-- Science Field Notes Card -->
+                    <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-4">
+                        <h3 class="font-display font-bold text-amber-900 text-base flex items-center gap-2 mb-2">
+                            <span>🔬</span> 5th Grade Science Facts
+                        </h3>
+                        <ul id="scienceFactsList" class="space-y-2 text-xs sm:text-sm text-amber-950 font-semibold">
+                            <!-- Facts populated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Interactive Observation Check Question -->
+                    <div id="quizCard" class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-extrabold uppercase text-sky-700">Quick Lab Check</span>
+                            <span id="quizStatus" class="text-xs font-bold text-sky-600">Answer to earn a star ⭐</span>
+                        </div>
+                        <p id="quizQuestion" class="font-bold text-sm text-slate-800 mb-2.5">
+                            Why does the butterfly lay its eggs on milkweed leaves?
+                        </p>
+                        <div id="quizOptions" class="grid grid-cols-1 gap-2">
+                            <!-- Quiz options populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Next/Prev Navigation Footer -->
+                <div class="pt-2 border-t-2 border-slate-100 flex items-center justify-between gap-2">
+                    <button id="prevBtn" onclick="prevStage()" class="btn-bouncy bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-2.5 rounded-2xl text-sm">
+                        ⬅️ Previous
+                    </button>
+                    <div class="text-center">
+                        <span id="starsCounter" class="font-display font-bold text-amber-500 text-base">⭐ 0 / 4 Stars</span>
+                    </div>
+                    <button id="nextBtn" onclick="nextStage()" class="btn-bouncy bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm">
+                        Next Stage ➡️
+                    </button>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+
+    <!-- Vocabulary Modal (Custom Dialog - Never uses alert()) -->
+    <div id="vocabModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-4 border-purple-400 max-w-lg w-full p-6 shadow-2xl transform transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold text-purple-900 flex items-center gap-2">
+                    <span>📖</span> Butterfly Science Vocabulary
+                </h3>
+                <button onclick="closeVocabModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 flex items-center justify-center">✕</button>
+            </div>
+            <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1 text-sm">
+                <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200">
+                    <div class="font-bold text-purple-900 text-base">Complete Metamorphosis</div>
+                    <p class="text-slate-700">A major life cycle change with four distinct stages: egg, larva, pupa, and adult.</p>
+                </div>
+                <div class="p-3 bg-lime-50 rounded-2xl border border-lime-200">
+                    <div class="font-bold text-lime-900 text-base">Larva (Caterpillar)</div>
+                    <p class="text-slate-700">The active eating and growing stage after an insect hatches from an egg.</p>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                    <div class="font-bold text-emerald-900 text-base">Molting</div>
+                    <p class="text-slate-700">Shedding an old, tight outer skin (exoskeleton) so the caterpillar can keep growing bigger.</p>
+                </div>
+                <div class="p-3 bg-teal-50 rounded-2xl border border-teal-200">
+                    <div class="font-bold text-teal-900 text-base">Chrysalis (Pupa)</div>
+                    <p class="text-slate-700">The protective shell where the caterpillar transforms into a butterfly.</p>
+                </div>
+                <div class="p-3 bg-orange-50 rounded-2xl border border-orange-200">
+                    <div class="font-bold text-orange-900 text-base">Proboscis</div>
+                    <p class="text-slate-700">A long, straw-like tongue butterflies use to sip sweet nectar from flowers.</p>
+                </div>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="closeVocabModal()" class="btn-bouncy bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-2.5 rounded-2xl">
+                    Got It!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Completion Modal -->
+    <div id="celebrationModal" class="hidden fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-4 border-amber-400 max-w-md w-full p-6 text-center shadow-2xl">
+            <div class="text-6xl mb-3 animate-bounce">🦋🎉</div>
+            <h3 class="text-2xl sm:text-3xl font-bold text-amber-600 mb-2">Metamorphosis Complete!</h3>
+            <p class="text-slate-700 font-semibold text-sm sm:text-base mb-4">
+                Amazing job, Junior Entomologist! You guided the butterfly through all four stages of <strong>Complete Metamorphosis</strong> and helped pollinate the garden!
+            </p>
+            <div id="finalStarSummary" class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 font-display font-bold text-amber-900 text-lg mb-5">
+                You earned ⭐ 4 / 4 Lab Stars!
+            </div>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeCelebrationModal()" class="btn-bouncy bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-2.5 rounded-2xl">
+                    Keep Exploring
+                </button>
+                <button onclick="resetSimulation()" class="btn-bouncy bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-2xl">
+                    Play Again 🔄
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Butterfly Life Cycle Interactive Simulation
+         * Designed for 5th Grade Science (NGSS 3-LS1-1 / 5-LS2-1 aligned)
+         */
+
+        // Sound effects controller using Tone.js
+        let soundEnabled = true;
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                try {
+                    synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -8;
+                } catch (e) {
+                    console.warn("Audio initialization skipped:", e);
+                }
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!synth) return;
+
+            try {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                const now = Tone.now();
+                if (type === 'tap') {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                } else if (type === 'munch') {
+                    synth.triggerAttackRelease(["E4", "G4"], "16n", now);
+                } else if (type === 'molt') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+                } else if (type === 'magic') {
+                    synth.triggerAttackRelease(["D5", "F#5", "A5", "D6"], "8n", now);
+                } else if (type === 'success') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n", now);
+                } else if (type === 'wrong') {
+                    synth.triggerAttackRelease(["F3", "E3"], "8n", now);
+                }
+            } catch (e) {
+                // Ignore audio errors if user hasn't interacted yet
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundLabel').textContent = soundEnabled ? 'Sound On' : 'Muted';
+            if (soundEnabled) playSound('tap');
+        }
+
+        // Simulation State
+        const state = {
+            currentStage: 0,
+            // Stage 0: Egg
+            eggWarmth: 0,
+            eggTaps: 0,
+            eggHatched: false,
+            // Stage 1: Larva
+            leavesEaten: 0,
+            moltCount: 0,
+            caterpillarFull: false,
+            // Stage 2: Pupa
+            chrysalisDays: 0,
+            chrysalisTransparent: false,
+            // Stage 3: Adult Butterfly
+            flowersVisited: 0,
+            wingsDried: false,
+            butterflyPos: { x: 50, y: 45 },
+            // Quiz Stars earned per stage
+            starsEarned: [false, false, false, false]
+        };
+
+        // Curriculum Content Data for each stage
+        const stagesData = [
+            {
+                badge: "Stage 1 of 4",
+                duration: "⏱️ ~3 to 5 Days",
+                title: "1. The Egg Stage",
+                mission: "Shine warm sunlight on the egg and gently tap it when ready to hatch!",
+                progressLabel: "Egg Warmth & Development",
+                description: "A mother Monarch butterfly lays tiny, pinhead-sized eggs on the underside of a <strong>milkweed leaf</strong>. The leaf shelters the egg from predators and provides instant food when the baby hatches.",
+                facts: [
+                    "🥚 Each egg has a hard outer shell called a <strong>chorion</strong> with tiny ridges.",
+                    "🌱 Monarchs only lay eggs on milkweed—it is their special <strong>host plant</strong>.",
+                    "👀 Right before hatching, the dark head of the tiny caterpillar shows through!"
+                ],
+                quiz: {
+                    question: "Why does a butterfly lay its eggs on milkweed leaves?",
+                    options: [
+                        "So the hatching caterpillar has immediate food to eat",
+                        "Because milkweed leaves are made of sweet nectar",
+                        "To keep the eggs frozen during winter"
+                    ],
+                    correctIndex: 0
+                }
+            },
+            {
+                badge: "Stage 2 of 4",
+                duration: "⏱️ ~10 to 14 Days",
+                title: "2. Larva (Caterpillar)",
+                mission: "Feed the hungry caterpillar milkweed leaves and help it molt as it grows!",
+                progressLabel: "Caterpillar Growth & Molting",
+                description: "When the larva (caterpillar) hatches, its main job is to <strong>eat and grow</strong>! Because its skin doesn't stretch, it must shed its outer skin (<strong>molt</strong>) 5 times as it grows over 2,000 times larger!",
+                facts: [
+                    "🐛 First meal: The caterpillar eats its own nutrient-rich eggshell!",
+                    "🧥 Each growth phase between molts is called an <strong>instar</strong>.",
+                    "🌿 Milkweed toxins stored in the caterpillar's body make birds avoid eating it."
+                ],
+                quiz: {
+                    question: "What is it called when a caterpillar sheds its tight skin to grow bigger?",
+                    options: [
+                        "Pollination",
+                        "Molting",
+                        "Hibernation"
+                    ],
+                    correctIndex: 1
+                }
+            },
+            {
+                badge: "Stage 3 of 4",
+                duration: "⏱️ ~10 to 14 Days",
+                title: "3. Pupa (Chrysalis)",
+                mission: "Advance time and observe the transformation inside the green chrysalis!",
+                progressLabel: "Metamorphosis Inside Chrysalis",
+                description: "The full-grown caterpillar hangs upside down in a <strong>'J' shape</strong> and forms a protective jade-green <strong>chrysalis</strong>. Inside, special cells reorganize the caterpillar's body into wings, antennae, and six legs!",
+                facts: [
+                    "💎 The gold dots on a Monarch chrysalis help control oxygen and camouflage it.",
+                    "🔬 Note: Moths spin fuzzy cocoons, while butterflies form smooth <strong>chrysalides</strong>.",
+                    "🧡 On the final day, the chrysalis turns clear so you can see orange wings inside!"
+                ],
+                quiz: {
+                    question: "What happens inside the chrysalis during the pupa stage?",
+                    options: [
+                        "The caterpillar sleeps without changing at all",
+                        "The body completely reorganizes into an adult butterfly",
+                        "It lays dozens of new butterfly eggs"
+                    ],
+                    correctIndex: 1
+                }
+            },
+            {
+                badge: "Stage 4 of 4",
+                duration: "⏱️ ~2 to 6 Weeks",
+                title: "4. Adult Butterfly",
+                mission: "Dry the butterfly's wings, then tap the flowers to sip nectar & pollinate!",
+                progressLabel: "Wing Drying & Flower Pollination",
+                description: "The adult butterfly emerges with soft, crumpled wings. After pumping fluid into its wings to dry them, it flies to flowers—sipping nectar with its straw-like <strong>proboscis</strong> and carrying <strong>pollen</strong> from flower to flower!",
+                facts: [
+                    "🥤 Butterflies taste flowers with sensors on their <strong>feet</strong> and drink with a proboscis.",
+                    "🌼 As they drink nectar, pollen sticks to their legs and helps plants reproduce.",
+                    "🧭 Monarchs migrate thousands of miles south each autumn!"
+                ],
+                quiz: {
+                    question: "How do adult butterflies help flowering plants in the ecosystem?",
+                    options: [
+                        "By eating all the flower roots",
+                        "By carrying pollen between flowers while sipping nectar",
+                        "By spinning webs around the petals"
+                    ],
+                    correctIndex: 1
+                }
+            }
+        ];
+
+        // Toast Helper inside Habitat
+        let toastTimeout = null;
+        function showHabitatToast(msg) {
+            const toast = document.getElementById('habitatToast');
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2200);
+        }
+
+        // Select Stage & Render UI
+        function selectStage(index) {
+            state.currentStage = index;
+            playSound('tap');
+            renderAll();
+        }
+
+        function nextStage() {
+            if (state.currentStage < 3) {
+                selectStage(state.currentStage + 1);
+            } else {
+                openCelebrationModal();
+            }
+        }
+
+        function prevStage() {
+            if (state.currentStage > 0) {
+                selectStage(state.currentStage - 1);
+            }
+        }
+
+        // Render Everything
+        function renderAll() {
+            const idx = state.currentStage;
+            const data = stagesData[idx];
+
+            // Update Stepper Nav Buttons
+            for (let i = 0; i < 4; i++) {
+                const navBtn = document.getElementById(`nav-${i}`);
+                if (i === idx) {
+                    navBtn.className = "btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white border-emerald-500 shadow-lg scale-[1.02]";
+                } else {
+                    navBtn.className = "btn-bouncy rounded-2xl p-3 border-4 text-left flex items-center gap-3 bg-white/75 border-slate-200 hover:border-sky-300";
+                }
+            }
+
+            // Update Right Panel Text & Facts
+            document.getElementById('stageBadge').textContent = data.badge;
+            document.getElementById('durationBadge').textContent = data.duration;
+            document.getElementById('stageTitle').textContent = data.title;
+            document.getElementById('stageDescription').innerHTML = data.description;
+            document.getElementById('missionText').textContent = data.mission;
+            document.getElementById('progressLabel').textContent = data.progressLabel;
+
+            const factsList = document.getElementById('scienceFactsList');
+            factsList.innerHTML = data.facts.map(f => `<li class="flex items-start gap-2"><span>•</span><span>${f}</span></li>`).join('');
+
+            // Update Quiz Section
+            renderQuiz(idx);
+
+            // Update Stars & Prev/Next Buttons
+            const totalStars = state.starsEarned.filter(Boolean).length;
+            document.getElementById('starsCounter').textContent = `⭐ ${totalStars} / 4 Stars`;
+            document.getElementById('prevBtn').disabled = (idx === 0);
+            document.getElementById('nextBtn').textContent = (idx === 3) ? "Finish Lab 🎉" : "Next Stage ➡️";
+
+            // Render Stage-Specific Visual & Controls
+            renderStageInteractive();
+        }
+
+        function renderQuiz(idx) {
+            const quiz = stagesData[idx].quiz;
+            const solved = state.starsEarned[idx];
+            document.getElementById('quizQuestion').textContent = quiz.question;
+            document.getElementById('quizStatus').textContent = solved ? "Star Earned! ⭐" : "Answer to earn a star ⭐";
+            document.getElementById('quizStatus').className = solved ? "text-xs font-extrabold text-emerald-600" : "text-xs font-bold text-sky-600";
+
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = quiz.options.map((opt, optIdx) => {
+                let btnStyle = "bg-white hover:bg-sky-100 border-sky-200 text-slate-800";
+                if (solved && optIdx === quiz.correctIndex) {
+                    btnStyle = "bg-emerald-100 border-emerald-500 text-emerald-900 font-extrabold";
+                }
+                return `
+                    <button onclick="answerQuiz(${idx}, ${optIdx})" class="w-full text-left text-xs sm:text-sm p-2.5 rounded-xl border-2 transition-all font-semibold ${btnStyle}">
+                        ${solved && optIdx === quiz.correctIndex ? '✅ ' : ''}${opt}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function answerQuiz(stageIdx, optIdx) {
+            const quiz = stagesData[stageIdx].quiz;
+            if (optIdx === quiz.correctIndex) {
+                if (!state.starsEarned[stageIdx]) {
+                    state.starsEarned[stageIdx] = true;
+                    playSound('success');
+                    showHabitatToast("⭐ Correct! You earned a Lab Star!");
+                } else {
+                    playSound('tap');
+                }
+                renderAll();
+            } else {
+                playSound('wrong');
+                showHabitatToast("🤔 Not quite! Check the Science Facts above and try again.");
+            }
+        }
+
+        // Render Interactive Stage Canvas + Buttons
+        function renderStageInteractive() {
+            const idx = state.currentStage;
+            const container = document.getElementById('stageVisualContainer');
+            const btns = document.getElementById('actionButtonsContainer');
+            let pct = 0;
+
+            if (idx === 0) {
+                // STAGE 1: EGG ON MILKWEED LEAF
+                pct = state.eggHatched ? 100 : Math.min(100, Math.round((state.eggWarmth * 0.6) + (state.eggTaps * 20)));
+                const readyToHatch = state.eggWarmth >= 100 && !state.eggHatched;
+
+                container.innerHTML = `
+                    <div class="relative w-full h-full flex flex-col items-center justify-center">
+                        <!-- Interactive Sun -->
+                        <button onclick="warmEgg()" class="absolute top-2 right-4 text-5xl sm:text-6xl cursor-pointer transition-transform hover:scale-110 active:scale-95 ${state.eggWarmth >= 100 ? 'animate-glow' : ''}" title="Tap Sun to Warm the Egg">
+                            ☀️
+                        </button>
+
+                        <!-- Milkweed Leaf & Egg SVG -->
+                        <svg viewBox="0 0 360 240" class="w-full max-w-[360px] h-auto drop-shadow-lg overflow-visible">
+                            <!-- Stem -->
+                            <path d="M 20 200 Q 90 160 150 140" stroke="#15803d" stroke-width="8" fill="none" stroke-linecap="round"/>
+                            <!-- Big Milkweed Leaf -->
+                            <path d="M 70 150 C 110 70, 260 65, 320 130 C 265 195, 115 195, 70 150 Z" fill="#22c55e" stroke="#15803d" stroke-width="4"/>
+                            <!-- Leaf Veins -->
+                            <path d="M 75 150 Q 195 135 315 130" stroke="#86efac" stroke-width="3" fill="none"/>
+                            <path d="M 130 143 L 160 102 M 180 139 L 215 98 M 235 135 L 265 103" stroke="#86efac" stroke-width="2" fill="none"/>
+                            <path d="M 135 145 L 165 178 M 185 141 L 220 176 M 240 137 L 270 166" stroke="#86efac" stroke-width="2" fill="none"/>
+
+                            <!-- Egg or Hatching Larva -->
+                            ${!state.eggHatched ? `
+                                <g onclick="tapEgg()" class="cursor-pointer ${readyToHatch ? 'animate-wiggle' : ''}" style="transform-origin: 195px 118px;">
+                                    <!-- Glow ring when warm -->
+                                    ${state.eggWarmth >= 100 ? `<circle cx="195" cy="116" r="28" fill="rgba(253, 224, 71, 0.45)" />` : ''}
+                                    <!-- Cream Ridged Butterfly Egg -->
+                                    <ellipse cx="195" cy="116" rx="16" ry="21" fill="#fef9c3" stroke="#ca8a04" stroke-width="3"/>
+                                    <path d="M 195 95 L 195 137 M 186 98 Q 183 116 186 134 M 204 98 Q 207 116 204 134" stroke="#eab308" stroke-width="1.5" fill="none"/>
+                                    <!-- Tiny dark caterpillar head visible when warm -->
+                                    ${state.eggWarmth >= 60 ? `<circle cx="195" cy="105" r="5" fill="#1e293b"/>` : ''}
+                                    <!-- Crack lines as user taps -->
+                                    ${state.eggTaps >= 1 ? `<path d="M 183 114 L 192 118 L 198 112 L 207 116" stroke="#713f12" stroke-width="2.5" fill="none"/>` : ''}
+                                </g>
+                            ` : `
+                                <!-- Newly Hatched Tiny Caterpillar! -->
+                                <g class="animate-bounce" style="transform-origin: 195px 120px;">
+                                    <circle cx="170" cy="122" r="8" fill="#a3e635" stroke="#3f6212" stroke-width="2"/>
+                                    <circle cx="183" cy="120" r="9" fill="#bef264" stroke="#3f6212" stroke-width="2"/>
+                                    <circle cx="197" cy="119" r="10" fill="#a3e635" stroke="#3f6212" stroke-width="2"/>
+                                    <circle cx="212" cy="117" r="10" fill="#1e293b"/>
+                                    <circle cx="215" cy="114" r="2.5" fill="#ffffff"/>
+                                    <text x="155" y="88" font-size="16" font-weight="bold" fill="#15803d">🎉 Hatched!</text>
+                                </g>
+                            `}
+                        </svg>
+                        <p class="text-xs font-bold text-slate-600 mt-1">
+                            ${state.eggHatched ? "The tiny larva hatched and is ready to eat!" : (state.eggWarmth < 100 ? "Step 1: Warm the egg with sunlight!" : "Step 2: Tap the egg to help it crack open!")}
+                        </p>
+                    </div>
+                `;
+
+                btns.innerHTML = `
+                    <button onclick="warmEgg()" ${state.eggWarmth >= 100 ? 'disabled' : ''} class="btn-bouncy bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>☀️</span> Shine Sunlight (${state.eggWarmth}%)
+                    </button>
+                    <button onclick="tapEgg()" ${state.eggHatched ? 'disabled' : ''} class="btn-bouncy bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>🥚</span> Tap Egg to Hatch
+                    </button>
+                    ${state.eggHatched ? `
+                        <button onclick="selectStage(1)" class="btn-bouncy bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm animate-pulse">
+                            Go to Larva Stage ➡️
+                        </button>
+                    ` : ''}
+                `;
+            } else if (idx === 1) {
+                // STAGE 2: LARVA (CATERPILLAR)
+                pct = Math.min(100, Math.round((state.leavesEaten / 6) * 100));
+                const scaleFactor = 0.75 + (state.leavesEaten * 0.11);
+                const needsMolt = (state.leavesEaten === 2 && state.moltCount < 1) || (state.leavesEaten === 4 && state.moltCount < 2);
+
+                container.innerHTML = `
+                    <div class="relative w-full h-full flex flex-col items-center justify-center">
+                        <!-- Extra Milkweed Leaves to Click & Feed -->
+                        <div class="flex gap-4 mb-2">
+                            ${[0, 1, 2].map(leafId => `
+                                <button onclick="feedCaterpillar()" class="btn-bouncy bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-400 rounded-2xl px-3 py-1.5 text-2xl" title="Feed Leaf">
+                                    🌿
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Growing Striped Monarch Caterpillar SVG -->
+                        <svg viewBox="0 0 380 200" class="w-full max-w-[380px] h-auto overflow-visible">
+                            <!-- Branch -->
+                            <path d="M 20 155 Q 190 145 360 155" stroke="#78350f" stroke-width="12" fill="none" stroke-linecap="round"/>
+                            
+                            <!-- Caterpillar Group scaled by growth -->
+                            <g transform="translate(190, 132) scale(${scaleFactor}) translate(-190, -132)" class="${needsMolt ? 'animate-wiggle' : ''}">
+                                <!-- Back Tentacles -->
+                                <path d="M 105 115 Q 92 95 85 92" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                                <!-- Striped Segments (Yellow, Black, White Monarch Pattern) -->
+                                ${[110, 132, 154, 176, 198, 220, 242].map((cx, sIdx) => `
+                                    <g>
+                                        <circle cx="${cx}" cy="125" r="17" fill="#facc15" stroke="#1e293b" stroke-width="3"/>
+                                        <path d="M ${cx - 6} 109 L ${cx - 6} 141" stroke="#1e293b" stroke-width="4"/>
+                                        <path d="M ${cx + 5} 109 L ${cx + 5} 141" stroke="#ffffff" stroke-width="3.5"/>
+                                    </g>
+                                `).join('')}
+                                <!-- Caterpillar Head -->
+                                <circle cx="264" cy="124" r="16" fill="#facc15" stroke="#1e293b" stroke-width="3"/>
+                                <circle cx="269" cy="120" r="3.5" fill="#1e293b"/>
+                                <path d="M 264 131 Q 270 135 275 130" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <!-- Front Tentacles -->
+                                <path d="M 268 109 Q 280 86 292 82" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                                <path d="M 260 109 Q 268 88 278 84" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            </g>
+                        </svg>
+
+                        <div class="text-xs font-extrabold px-3 py-1 rounded-full ${needsMolt ? 'bg-amber-200 text-amber-900 animate-bounce' : 'bg-white/80 text-slate-700'}">
+                            ${state.leavesEaten >= 6 
+                                ? "🎉 Full grown! Ready to form a chrysalis!" 
+                                : (needsMolt ? "⚠️ Skin is too tight! Tap 'Molt Skin' to keep growing!" : `Leaves Eaten: ${state.leavesEaten} / 6 • Molts: ${state.moltCount}`)}
+                        </div>
+                    </div>
+                `;
+
+                btns.innerHTML = `
+                    <button onclick="feedCaterpillar()" ${state.leavesEaten >= 6 || needsMolt ? 'disabled' : ''} class="btn-bouncy bg-lime-500 hover:bg-lime-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>🌿</span> Feed Milkweed (${state.leavesEaten}/6)
+                    </button>
+                    <button onclick="moltCaterpillar()" ${!needsMolt ? 'disabled' : ''} class="btn-bouncy bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2 ${needsMolt ? 'animate-bounce' : ''}">
+                        <span>🧥</span> Molt Skin (${state.moltCount}/2)
+                    </button>
+                    ${state.leavesEaten >= 6 ? `
+                        <button onclick="selectStage(2)" class="btn-bouncy bg-teal-500 hover:bg-teal-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm animate-pulse">
+                            Form Chrysalis ➡️
+                        </button>
+                    ` : ''}
+                `;
+            } else if (idx === 2) {
+                // STAGE 3: PUPA (CHRYSALIS)
+                pct = Math.min(100, Math.round((state.chrysalisDays / 10) * 100));
+                const isClear = state.chrysalisDays >= 8;
+                const isReady = state.chrysalisDays >= 10;
+
+                container.innerHTML = `
+                    <div class="relative w-full h-full flex flex-col items-center justify-center">
+                        <svg viewBox="0 0 320 250" class="w-full max-w-[320px] h-auto drop-shadow-xl">
+                            <!-- Top Branch -->
+                            <path d="M 30 35 Q 160 45 290 30" stroke="#78350f" stroke-width="14" fill="none" stroke-linecap="round"/>
+                            <!-- Silk Pad & Cremaster Stem -->
+                            <ellipse cx="160" cy="40" rx="14" ry="5" fill="#f8fafc"/>
+                            <path d="M 160 40 L 160 62" stroke="#1e293b" stroke-width="4"/>
+
+                            <!-- Chrysalis Body -->
+                            <g onclick="advanceChrysalis()" class="cursor-pointer animate-float" style="transform-origin: 160px 60px;">
+                                <path d="M 160 60 C 192 65, 202 105, 195 150 C 188 188, 172 208, 160 212 C 148 208, 132 188, 125 150 C 118 105, 128 65, 160 60 Z"
+                                    fill="${isClear ? 'rgba(251, 146, 60, 0.35)' : '#10b981'}"
+                                    stroke="${isClear ? '#ea580c' : '#047857'}"
+                                    stroke-width="4"/>
+
+                                <!-- Orange Butterfly Wing Pattern Visible Inside when Clear! -->
+                                ${isClear ? `
+                                    <g opacity="0.9">
+                                        <path d="M 140 95 Q 160 110 142 155 Q 130 130 140 95 Z" fill="#f97316" stroke="#1e293b" stroke-width="2.5"/>
+                                        <path d="M 180 95 Q 160 110 178 155 Q 190 130 180 95 Z" fill="#f97316" stroke="#1e293b" stroke-width="2.5"/>
+                                        <line x1="160" y1="88" x2="160" y2="170" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+                                    </g>
+                                ` : `
+                                    <!-- Metallic Gold Crown Band on Jade Chrysalis -->
+                                    <path d="M 127 104 Q 160 114 193 104" stroke="#fde047" stroke-width="4" fill="none" stroke-dasharray="6 4"/>
+                                    <circle cx="145" cy="145" r="2.5" fill="#fde047"/>
+                                    <circle cx="175" cy="145" r="2.5" fill="#fde047"/>
+                                `}
+                            </g>
+                        </svg>
+
+                        <p class="text-xs font-extrabold text-teal-900 bg-white/85 px-3 py-1 rounded-full">
+                            ${isReady 
+                                ? "✨ Day 10: The chrysalis is clear—the butterfly is ready to emerge!" 
+                                : (isClear ? `Day ${state.chrysalisDays}/10: Look! You can see orange wings forming inside!` : `Day ${state.chrysalisDays}/10: Cells are transforming inside the jade-green chrysalis...`)}
+                        </p>
+                    </div>
+                `;
+
+                btns.innerHTML = `
+                    <button onclick="advanceChrysalis()" ${isReady ? 'disabled' : ''} class="btn-bouncy bg-teal-500 hover:bg-teal-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>⏩</span> Advance 2 Days (Day ${state.chrysalisDays}/10)
+                    </button>
+                    ${isReady ? `
+                        <button onclick="selectStage(3)" class="btn-bouncy bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm animate-bounce">
+                            Emerge as Butterfly! 🦋
+                        </button>
+                    ` : ''}
+                `;
+            } else if (idx === 3) {
+                // STAGE 4: ADULT BUTTERFLY & POLLINATION GARDEN
+                const wingScore = state.wingsDried ? 40 : 0;
+                const flowerScore = Math.min(60, state.flowersVisited * 20);
+                pct = wingScore + flowerScore;
+
+                container.innerHTML = `
+                    <div class="relative w-full h-full min-h-[260px] flex flex-col justify-between">
+                        <!-- Garden Sky & Interactive Flowers -->
+                        <div class="relative flex-1 w-full">
+                            <!-- Flying / Resting Monarch Butterfly -->
+                            <div id="butterflySprite" style="left: ${state.butterflyPos.x}%; top: ${state.butterflyPos.y}%;" class="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out pointer-events-none z-20">
+                                <svg viewBox="0 0 160 130" class="w-28 sm:w-36 h-auto drop-shadow-lg ${state.wingsDried ? 'wings-flutter' : 'scale-75 opacity-85'}">
+                                    <!-- Left Wings -->
+                                    <path d="M 80 65 C 45 15, 5 20, 15 62 C 20 80, 50 75, 80 70 Z" fill="#f97316" stroke="#1e293b" stroke-width="4"/>
+                                    <path d="M 80 70 C 45 75, 22 105, 45 118 C 65 125, 78 95, 80 75 Z" fill="#fb923c" stroke="#1e293b" stroke-width="4"/>
+                                    <!-- Right Wings -->
+                                    <path d="M 80 65 C 115 15, 155 20, 145 62 C 140 80, 110 75, 80 70 Z" fill="#f97316" stroke="#1e293b" stroke-width="4"/>
+                                    <path d="M 80 70 C 115 75, 138 105, 115 118 C 95 125, 82 95, 80 75 Z" fill="#fb923c" stroke="#1e293b" stroke-width="4"/>
+                                    <!-- Wing Veins & White Margin Dots -->
+                                    <line x1="80" y1="65" x2="28" y2="42" stroke="#1e293b" stroke-width="2.5"/>
+                                    <line x1="80" y1="65" x2="132" y2="42" stroke="#1e293b" stroke-width="2.5"/>
+                                    <circle cx="20" cy="40" r="2.5" fill="#ffffff"/>
+                                    <circle cx="140" cy="40" r="2.5" fill="#ffffff"/>
+                                    <circle cx="48" cy="110" r="2.5" fill="#ffffff"/>
+                                    <circle cx="112" cy="110" r="2.5" fill="#ffffff"/>
+                                    <!-- Thorax & Antennae -->
+                                    <ellipse cx="80" cy="68" rx="5" ry="22" fill="#1e293b"/>
+                                    <path d="M 78 46 Q 68 28 62 26 M 82 46 Q 92 28 98 26" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+
+                            <!-- 3 Interactive Meadow Flowers at Bottom -->
+                            <div class="absolute bottom-1 inset-x-0 flex justify-around items-end px-4">
+                                <button onclick="visitFlower(20, 68, 'Coneflower')" class="group flex flex-col items-center cursor-pointer transition-transform hover:scale-110">
+                                    <span class="text-[11px] font-extrabold bg-white/90 px-2 py-0.5 rounded-full text-pink-700 mb-1 shadow-sm">🌸 Coneflower</span>
+                                    <div class="text-5xl sm:text-6xl">🌺</div>
+                                </button>
+                                <button onclick="visitFlower(50, 72, 'Milkweed Blossom')" class="group flex flex-col items-center cursor-pointer transition-transform hover:scale-110">
+                                    <span class="text-[11px] font-extrabold bg-white/90 px-2 py-0.5 rounded-full text-amber-800 mb-1 shadow-sm">🌻 Sunflower</span>
+                                    <div class="text-5xl sm:text-6xl">🌻</div>
+                                </button>
+                                <button onclick="visitFlower(80, 68, 'Aster Blossom')" class="group flex flex-col items-center cursor-pointer transition-transform hover:scale-110">
+                                    <span class="text-[11px] font-extrabold bg-white/90 px-2 py-0.5 rounded-full text-purple-700 mb-1 shadow-sm">🌼 Meadow Daisy</span>
+                                    <div class="text-5xl sm:text-6xl">🌼</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="text-center text-xs font-extrabold text-orange-900 bg-white/85 py-1 px-3 rounded-full mx-auto mt-2">
+                            ${!state.wingsDried 
+                                ? "Step 1: Pump fluid & dry the butterfly's wings before flying!" 
+                                : `Flowers Pollinated: ${state.flowersVisited} / 3 — Tap any flower to fly and sip nectar!`}
+                        </p>
+                    </div>
+                `;
+
+                btns.innerHTML = `
+                    <button onclick="dryWings()" ${state.wingsDried ? 'disabled' : ''} class="btn-bouncy bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>💨</span> Dry & Strengthen Wings
+                    </button>
+                    <button onclick="visitFlower(50, 70, 'Garden Flowers')" ${!state.wingsDried ? 'disabled' : ''} class="btn-bouncy bg-pink-500 hover:bg-pink-600 text-white font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <span>🌸</span> Sip Nectar (${state.flowersVisited}/3)
+                    </button>
+                `;
+            }
+
+            // Update Progress Bar UI
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('progressPercent').textContent = `${pct}%`;
+        }
+
+        // Interactive Stage Actions
+        function warmEgg() {
+            if (state.eggWarmth < 100) {
+                state.eggWarmth = Math.min(100, state.eggWarmth + 50);
+                playSound('tap');
+                if (state.eggWarmth === 100) {
+                    showHabitatToast("☀️ The egg is warm! Now tap the egg to hatch it!");
+                } else {
+                    showHabitatToast("☀️ Warming the egg in the sunshine...");
+                }
+                renderStageInteractive();
+            }
+        }
+
+        function tapEgg() {
+            if (state.eggHatched) return;
+            if (state.eggWarmth < 100) {
+                playSound('wrong');
+                showHabitatToast("☀️ Shine sunlight on the egg first so it's warm enough to hatch!");
+                return;
+            }
+            state.eggTaps += 1;
+            playSound('tap');
+            if (state.eggTaps >= 2) {
+                state.eggHatched = true;
+                playSound('success');
+                showHabitatToast("🐛 Pop! A tiny caterpillar hatched from the egg!");
+            } else {
+                showHabitatToast("🥚 Crack! Tap one more time!");
+            }
+            renderStageInteractive();
+        }
+
+        function feedCaterpillar() {
+            const needsMolt = (state.leavesEaten === 2 && state.moltCount < 1) || (state.leavesEaten === 4 && state.moltCount < 2);
+            if (needsMolt) {
+                playSound('wrong');
+                showHabitatToast("🧥 Too tight! Click 'Molt Skin' before eating more!");
+                return;
+            }
+            if (state.leavesEaten < 6) {
+                state.leavesEaten += 1;
+                playSound('munch');
+                if (state.leavesEaten === 2 || state.leavesEaten === 4) {
+                    showHabitatToast("🐛 Crunch! The caterpillar grew—time to molt its skin!");
+                } else if (state.leavesEaten === 6) {
+                    playSound('success');
+                    showHabitatToast("🎉 Full grown! Ready to hang in a J-shape and form a chrysalis!");
+                } else {
+                    showHabitatToast("🌿 Munch, munch! Growing bigger!");
+                }
+                renderStageInteractive();
+            }
+        }
+
+        function moltCaterpillar() {
+            const needsMolt = (state.leavesEaten === 2 && state.moltCount < 1) || (state.leavesEaten === 4 && state.moltCount < 2);
+            if (needsMolt) {
+                state.moltCount += 1;
+                playSound('molt');
+                showHabitatToast("✨ Shed old skin! Now the caterpillar has room to grow!");
+                renderStageInteractive();
+            }
+        }
+
+        function advanceChrysalis() {
+            if (state.chrysalisDays < 10) {
+                state.chrysalisDays = Math.min(10, state.chrysalisDays + 2);
+                playSound('magic');
+                if (state.chrysalisDays === 8) {
+                    showHabitatToast("🧡 Look closely! The chrysalis is turning transparent!");
+                } else if (state.chrysalisDays === 10) {
+                    playSound('success');
+                    showHabitatToast("🦋 Metamorphosis complete! Ready to emerge!");
+                } else {
+                    showHabitatToast(`⏱️ Day ${state.chrysalisDays}: Wings and antennae are forming inside!`);
+                }
+                renderStageInteractive();
+            }
+        }
+
+        function dryWings() {
+            if (!state.wingsDried) {
+                state.wingsDried = true;
+                playSound('magic');
+                showHabitatToast("💨 Wings are strong and dry! Tap a flower to fly!");
+                renderStageInteractive();
+            }
+        }
+
+        function visitFlower(xPos, yPos, flowerName) {
+            if (!state.wingsDried) {
+                playSound('wrong');
+                showHabitatToast("💨 Dry the butterfly's wings first before flying!");
+                return;
+            }
+            state.butterflyPos = { x: xPos, y: yPos };
+            state.flowersVisited += 1;
+            playSound('munch');
+
+            if (state.flowersVisited === 3) {
+                playSound('success');
+                showHabitatToast("🌸 Pollinated 3 flowers! The life cycle can begin again!");
+                setTimeout(() => openCelebrationModal(), 1100);
+            } else {
+                showHabitatToast(`🥤 Sipping sweet nectar & carrying pollen from ${flowerName}!`);
+            }
+            renderStageInteractive();
+        }
+
+        // Modals & Reset
+        function openVocabModal() {
+            playSound('tap');
+            document.getElementById('vocabModal').classList.remove('hidden');
+        }
+
+        function closeVocabModal() {
+            playSound('tap');
+            document.getElementById('vocabModal').classList.add('hidden');
+        }
+
+        function openCelebrationModal() {
+            playSound('success');
+            const totalStars = state.starsEarned.filter(Boolean).length;
+            document.getElementById('finalStarSummary').textContent = `You earned ⭐ ${totalStars} / 4 Lab Stars!`;
+            document.getElementById('celebrationModal').classList.remove('hidden');
+        }
+
+        function closeCelebrationModal() {
+            playSound('tap');
+            document.getElementById('celebrationModal').classList.add('hidden');
+        }
+
+        function resetSimulation() {
+            playSound('tap');
+            state.currentStage = 0;
+            state.eggWarmth = 0;
+            state.eggTaps = 0;
+            state.eggHatched = false;
+            state.leavesEaten = 0;
+            state.moltCount = 0;
+            state.caterpillarFull = false;
+            state.chrysalisDays = 0;
+            state.chrysalisTransparent = false;
+            state.flowersVisited = 0;
+            state.wingsDried = false;
+            state.butterflyPos = { x: 50, y: 40 };
+            state.starsEarned = [false, false, false, false];
+            document.getElementById('celebrationModal').classList.add('hidden');
+            renderAll();
+        }
+
+        // Initialize on page load
+        window.onload = function () {
+            renderAll();
+        };
+    </script>
+</body>
+</html>
